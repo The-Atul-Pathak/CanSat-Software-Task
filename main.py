@@ -1,6 +1,39 @@
 from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QPixmap
+import csv
+
+
+csv_file = open('trial_data.csv', mode='r')
+csv_reader = iter(csv.DictReader(csv_file))
+
+def UpdateData():
+    try:
+        row = next(csv_reader)
+        TimeResultLabel.setText(row['TIME_STAMPING'])
+        packetCountResultLabel.setText(row['PACKET_COUNT'])
+        softwareStateResultLabel.setText(row['FLIGHT_SOFTWARE_STATE'])
+        altitudeResultLabel.setText(row['ALTITUDE'])
+        pressureResultLabel.setText(row['PRESSURE'])
+        tempeResultLabel.setText(row['TEMP'])
+        voltageResultLabel.setText(row['VOLTAGE'])
+        tvocResultLabel.setText(row['TVOC'])
+        eco2ResultLabel.setText(row['eCO2'])
+        gnssTimeResultLabel.setText(row['GNSS_TIME'])
+        gnssLatitudeResultLabel.setText(row['GNSS_LATITUDE'])
+        gnssLongitudeResultLabel.setText(row['GNSS_LONGITUDE'])
+        gnssAltitudeResultLabel.setText(row['GNSS_ALTITUDE'])
+        gnssSatsResultLabel.setText(row['GNSS_SATS'])
+        accrResultLabel.setText(row['ACC_R'])
+        accpResultLabel.setText(row['ACC_P'])
+        accyResultLabel.setText(row['ACC_Y'])
+        gyrorResultLabel.setText(row['GYRO_R'])
+        gyropResultLabel.setText(row['GYRO_P'])
+        gyroyResultLabel.setText(row['GYRO_Y'])
+    except StopIteration:
+        timer.stop()
+        csv_file.close()
+
 
 app = QApplication([])
 window = QMainWindow()
@@ -90,6 +123,7 @@ l5 = QGridLayout()
 ## l1
 gnssStatsLabel = QLabel("GNSS STATS", alignment=Qt.AlignmentFlag.AlignCenter)
 gnssStatsLabel.setMaximumHeight(10)
+gnssStatsLabel.setStyleSheet("color: #cfe4cb;")
 gnssTimeLabel = QLabel("gnss_time")
 gnssTimeResultLabel = QLabel("13:04:59", alignment=Qt.AlignmentFlag.AlignCenter)
 gnssTimeResultLabel.setFixedWidth(120)
@@ -134,6 +168,7 @@ l1_widget.setStyleSheet("QWidget { border: 2px solid #0b5a06; border-radius: 10p
 ## l2
 electricalStatsLabel = QLabel("ELECTRICAL STATS", alignment=Qt.AlignmentFlag.AlignCenter)
 electricalStatsLabel.setMaximumHeight(10)
+electricalStatsLabel.setStyleSheet("color: #cfe4cb;")
 voltageLabel = QLabel("voltage")
 voltageResultLabel = QLabel("13:04:59", alignment=Qt.AlignmentFlag.AlignCenter)
 voltageResultLabel.setFixedWidth(120)
@@ -150,6 +185,7 @@ l2_widget.setStyleSheet("QWidget { border: 2px solid #0b5a06; border-radius: 10p
 ## l3
 environmentalStatsLabel = QLabel("ENVIRONMENTAL STATS", alignment=Qt.AlignmentFlag.AlignCenter)
 environmentalStatsLabel.setMaximumHeight(10)
+environmentalStatsLabel.setStyleSheet("color: #cfe4cb;")
 altitudeLabel = QLabel("altitude")
 altitudeResultLabel = QLabel("305.41", alignment=Qt.AlignmentFlag.AlignCenter)
 altitudeResultLabel.setFixedWidth(120)
@@ -190,6 +226,7 @@ l3_widget.setStyleSheet("QWidget { border: 2px solid #0b5a06; border-radius: 10p
 ## l4
 accelerometerStatsLabel = QLabel("ACCELEROMETER STATS", alignment=Qt.AlignmentFlag.AlignCenter)
 accelerometerStatsLabel.setMaximumHeight(10)
+accelerometerStatsLabel.setStyleSheet("color: #cfe4cb;")
 accrLabel = QLabel("accr")
 accrResultLabel = QLabel("0.00", alignment=Qt.AlignmentFlag.AlignCenter)
 accrResultLabel.setFixedWidth(120)
@@ -218,6 +255,7 @@ l4_widget.setStyleSheet("QWidget { border: 2px solid #0b5a06; border-radius: 10p
 ## l5
 gyroscopeStatsLabel = QLabel("GYROSCOPE STATS", alignment=Qt.AlignmentFlag.AlignCenter)
 gyroscopeStatsLabel.setMaximumHeight(10)
+gyroscopeStatsLabel.setStyleSheet("color: #cfe4cb;")
 gyrorLabel = QLabel("gyror")
 gyrorResultLabel = QLabel("0.00", alignment=Qt.AlignmentFlag.AlignCenter)
 gyrorResultLabel.setFixedWidth(120)
@@ -282,23 +320,23 @@ stack.addWidget(graphsPage)
 stack.addWidget(locationPage)
 stack.addWidget(livePage)
 
-_tab_active = "background: #7ab8bc; color: white; height: 30px; border-radius: 10px; font-size: 14px; font-weight: bold;"
-_tab_inactive = "background: #bddfe1; color: white; height: 30px; border-radius: 10px; font-size: 14px; font-weight: bold;"
+tab_active = "background: #8f9a99; color: white; height: 30px; border-radius: 10px; font-size: 14px; font-weight: bold;"
+tab_inactive = "background: #bddfe1; color: white; height: 30px; border-radius: 10px; font-size: 14px; font-weight: bold;"
 
 tabTelemetry = QPushButton("Telemetry Data")
 tabGraphs = QPushButton("Graphs")
 tabLocation = QPushButton("Location and 3D Plotting")
 tabLive = QPushButton("Live Telecast")
 
-tabTelemetry.setStyleSheet(_tab_active)
-tabGraphs.setStyleSheet(_tab_inactive)
-tabLocation.setStyleSheet(_tab_inactive)
-tabLive.setStyleSheet(_tab_inactive)
+tabTelemetry.setStyleSheet(tab_active)
+tabGraphs.setStyleSheet(tab_inactive)
+tabLocation.setStyleSheet(tab_inactive)
+tabLive.setStyleSheet(tab_inactive)
 
 def switchTab(index):
     stack.setCurrentIndex(index)
     for i, btn in enumerate([tabTelemetry, tabGraphs, tabLocation, tabLive]):
-        btn.setStyleSheet(_tab_active if i == index else _tab_inactive)
+        btn.setStyleSheet(tab_active if i == index else tab_inactive)
 
 tabTelemetry.clicked.connect(lambda: switchTab(0))
 tabGraphs.clicked.connect(lambda: switchTab(1))
@@ -390,5 +428,10 @@ centerWidgit = QWidget()
 centerWidgit.setLayout(ParentLayout)
 
 window.setCentralWidget(centerWidgit)
+timer = QTimer()
+timer.setInterval(1000)
+timer.timeout.connect(UpdateData)
+timer.start()
+
 window.show()
 app.exec()
